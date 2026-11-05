@@ -1,0 +1,19 @@
+name: itch-push
+on:
+  push:
+    branches: [main]
+    paths: [index.html, main.pjs, src/world.wat, src/world.wasm, src/tools/**, .github/workflows/itch-push.yml]
+  workflow_dispatch:
+jobs:
+  push:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+      - name: build and push to itch.io
+        env:
+          BUTLER_API_KEY: ${{ secrets.BUTLER_API_KEY }}
+        run: |
+          INDEX_SRC=index.html META_SRC=main.pjs WAT_SRC=src/world.wat WASM_OUT=src/world.wasm REBUILD_MJS=src/tools/rebuild-kernel.mjs BUILD_MJS=src/tools/build-wasm.mjs bash src/tools/deploy-itch.sh doishy-doish/andrale-voxel:html5

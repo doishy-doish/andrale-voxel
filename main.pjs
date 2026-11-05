@@ -1,0 +1,119 @@
+// HELPER MAP (for any AI/human opening this generator): the whole game is ONE file,
+// `index.html` (~65k lines) — never trust remembered line numbers, they drift daily;
+// find things by grepping stable anchors instead. Content tables: BLOCK_NAMES /
+// MOB_NAMES / MOBS / HARDSHIP / RECIPES. Mobile sharpness: resize() /
+// applyChosenQuality() / applySaverQuality() / the fps cascade / testUpFuseTouch() /
+// __dbg.pinScale() / __dbg.pinNativeDpr(). Live probes: window.__aether (world, player,
+// ents, ui) and window.__dbg (testWorld/testDone, recipe, journal, give, help).
+// Wasm kernel: src/world.wat, rebuilt with src/tools/build-wasm.mjs, gated by
+// src/tools/kernel-gate.mjs. Critic reference frames (seed/pose/URLs + what the
+// mobile helper verifies): src/CRITIC_REFERENCE.md. DOCS: src/README.md (rule 12: owner's short words win),
+// src/TODO.md (work log, head = latest), src/OPTIMIZATION_RESEARCH.md (measurements),
+// scratch/CURRENT_TASK.md (ephemeral session record) + scratch/verify-*.js harnesses.
+// PROTOCOL: reproduce → fix → verify in the live preview (no-save guard:
+// sessionStorage.__aetherNoSave="1" + window.__noSave, cleared after) → stage for
+// OWNER SAVE. Never save/publish yourself; keep chat replies short.
+$meta
+  // Listing copy, rewritten 2026-09-22 from a measured corpus of 3,086 platform generators
+  // (see src/README.md, "listing copy" note). Three findings drove every word: the 3D games
+  // ABOVE us on the platform's own leaderboard all run a title of 3-8 words plus a description
+  // of 19-38 words in 2-3 sentences, opening with a category, not a generic verb; the
+  // 5,000+-view band is where "free"/"no sign-up"/"multiplayer" concentrate (14/14/21 % vs
+  // 4/1/10 % at the bottom); and ours was 74 words with the category arriving in sentence two.
+  // The demand vocabulary (procedural/open-world/exploration/first-person/infinite terrain/
+  // caves/ores/biomes/day-night) moved into `tags`, which is where a directory's category
+  // chips read from — the description no longer spends its first sentence on it.
+  title = Andrale Voxel — a voxel world that remembers you
+  // Description, 2026-09-25: the "runs on old phones" + "updated regularly" clauses are not decoration —
+  // they are the two facts the platform's own leaderboard games lead with, read off the live listing pages
+  // this session: the #1 3D game (`realistic-ai-dungeon`, 12 118 views) ends its blurb "Free in your
+  // browser, no download needed. Updated regularly — 2026." and the voxel leader (`multiplayer-minecraft-
+  // with-voice-chat`, 5 754) is 21 words of plain category + verb. Both are ASO factors with citations
+  // (system requirements + last update, `GROWTH_MODEL.md` §3.1), and the reach claim is the one axis the
+  // RAM-hungry rival cannot answer (§3.2). Stated as a capability, not a guarantee, because S2a is still
+  // open: the low-end path (`LOW_RAM`, the adaptive quality cascade) is real and shipping, and 16 of 88
+  // measured sessions still ran at <= 29 fps, so the promise is "runs on old phones", never "60 fps".
+  description = Minecraft-style voxel survival, free in your browser: mine, build, craft and explore an endless procedural world — then try not to notice that it's keeping notes. No sign-up, no download, and it runs on old phones and weak laptops, with one shared co-op world. Updated regularly.
+  // Tags, 2026-09-25 (batch 2): `low-poly`, `mining`, `zombie`, `zombies` added from the full room map in
+  // `COMPETITION.md` §9 — 34 candidate tags probed, ranked by the room's own top-by-views as the demand proxy.
+  // Each of these is a real room, each is a claim the game can keep (`MOBS.zombie`/`MOB_NAMES.zombie` ship as a
+  // night mob; mining is the core verb; the art is low-poly voxel), and our 978 would be #1 by views in all four.
+  // The one-entry rooms (`survival game`, `mobs`) were deliberately NOT taken: a room nobody browses is not demand.
+  // Batch 1 (2026-09-25), already live: `fps`, `shooter`, `game` — the tag browse lists turn out to be ordered by
+  // MOST RECENTLY EDITED, not by views (`COMPETITION.md` §9: recency was monotonic in `tags=fps` (33 entries),
+  // `tags=shooter` (70) and `tags=voxel` (60), and views-ordered false in all three), so a save pins a generator to
+  // the top of every tag list it belongs to, and we belonged to none of those three. Verified after the save:
+  // `fps` 33 entries — **present, display #1, views-rank #1 (top is us at 981)**; `shooter` 70 — #3 by views;
+  // `game` 582 — #14. Metric: `views/day` (baseline ≈49/day, COMPETITION §8) over the 24 h after the save.
+  tags = voxel, survival, sandbox, 3d, multiplayer, fps, shooter, game, low-poly, mining, zombie, zombies, co-op, crafting, building, browser game, free to play, no download, no install, play in browser, browser games, online, mobile, browser, procedural, open-world, infinite, terrain, exploration, first-person, adventure, caves, ores, biomes, day/night, horror, webassembly, free, lucky block, lucky blocks, tnt, explosions, waypearl, golden apple, deathward totem, private world, world seed
+  // Capsule art (2026-09-25, v4 — a REAL in-engine frame; supersedes the AI v3). v3 was AI-generated key
+  // art, and the owner's correction was fidelity: "the image should match the game [...] in the image
+  // there's things we don't have - either get our standard as them, or bring them to ours." He is right
+  // about the inventory, which is why the fix was measured against it rather than argued: v3 showed a
+  // THIRD-PERSON player avatar with a backpack, finished thatched cottages with chimneys, and a pickaxe —
+  // and the game is first-person, renders no avatar, has no pickaxe or axe item anywhere in `BLOCK_NAMES`
+  // (150-204 are swords, spear, bow, guns), and draws flat crisp voxels with a hard-edged sun and no depth
+  // of field. So v4 takes the SECOND branch of his either/or: the image is brought to the game rather than
+  // the game to the image. v4 IS a frame — `__aether.renderFrame()` on a live world (seed 777777, the
+  // TITLE_SITE coast near 440,-288, t 0.30 midday), the player's own held Stone Sword in the corner, sheep
+  // and chickens posed in the middle ground, ocean left, forest right — captured at 1147x691 and cropped
+  // 3:2 to 768x512. Nothing is painted in and nothing is graded: the pixels are the renderer's own, the
+  // cinematic grade and post-FX included. Composition still follows the v3 drill (the platform's
+  // leaderboard winners are BRIGHT and SUBJECT-FORWARD) and the title/hook/reach layout is unchanged; only
+  // the scrim was re-measured. At true listing size (100 px wide) v4 lands at 92.8 mean luminance with a
+  // 4.85:1 title contrast, and the same scan as v3 says that is the brightest value clearing the WCAG AA
+  // 4.5:1 floor (no scrim at all = 4.26:1, so the shipped top scrim is 0.10 and the 0 -> 0.5 bottom one is
+  // for the reach line). v3 measured brighter overall (100.9) but carried less title contrast (4.86:1 at a
+  // 0.34 scrim). The honest cost is recorded in README.md, "The capsule is a frame of the game, and what
+  // that costs": an unretouched engine frame is softer and lower-contrast than an illustration at 100 px —
+  // that is what fidelity buys and what it spends. A graded variant (sat 1.18 / contrast 1.12 / vignette
+  // 0.26 -> 81.9 lum, 6.89:1) was composed and is HELD BACK, because the ask was fidelity and not a
+  // treatment; one word and it ships instead. Archived frames: v3 (AI) at
+  // https://user.uploads.dev/file/f41ed62ebcfb46aaa691129acbc94226.jpg, the dark v2 at
+  // .../998f3ee205e803403e79eec151783103.png, the pre-2026-09-21 vista at
+  // .../b5fd0a57264a4229f7a5bff903728d4d.jpg. The two frames that lost the pick — a wide coastal shot and
+  // the arrival shelter at dusk, whose flaming torch is the strongest subject the engine has produced so
+  // far — are described there too, because the next capsule should start from them. (The A/B around an
+  // edit window, `GROWTH_MODEL.md` S1a, is still the one cheap experiment never run.)
+  image = https://user.uploads.dev/file/b77bb4468bd1ed1cd7993439e3bb53bf.jpg
+  header
+    mode = minimal
+
+// --- plugins ---
+createServerSocket = {import:server-plugin}
+kv = {import:kv-plugin}
+superFetch = {import:super-fetch-plugin}
+generateText = {import:ai-text-plugin}
+commentsPlugin = {import:comments-plugin}
+uploadPlugin = {import:upload-plugin}
+
+// --- presentation copy (edit these two lines to change the game's pitch) ---
+// See src/POSITIONING.md — hook first (players), cred badge second (portfolio).
+hookLine = A voxel world that remembers you.
+credLine = Hand-built WebAssembly engine · one file · no assets
+
+// --- the support link (the Ko-fi door) -------------------------------------------
+// PASTE THE KO-FI URL HERE (replace `none`) AND IT IS LIVE. While this is not an
+// http(s) URL, EVERY support control in the game stays hidden — the title-foot button,
+// the pause-menu button and the "How This Was Made" section are all inert — so the
+// front door is unchanged until there is somewhere to send people. A pjs value cannot
+// be left truly empty (the engine reads `key =` as a list name and rejects it), hence
+// the sentinel; the client's own test is `^https?://`, so any non-URL word works.
+// Where it appears, and why exactly there: README.md, "The support link".
+supportUrl = none
+// One sentence above the link in "How This Was Made". It sits under the panel's own
+// privacy paragraph, so it can assume the "nothing is sold here" point is already made.
+supportNote = Andrale Voxel is one person's work — no ads, no accounts, no paywall, and nothing about you or your world is sold. It stays free either way; this is only for people who want to keep it going.
+
+// --- community versions: the `communityWorlds` list feeds the small "More versions"
+// dropdown on the front door ---
+// One line per version, as:   Label | note (optional) | url
+// `Label` is what the player sees in the dropdown. `url` MUST be the TOP-LEVEL perchance
+// URL (https://perchance.org/<name>) — the subdomain URL cannot be navigated to — and a
+// line with no url is skipped, so the dropdown hides itself until one is filled in.
+// Paste the fork's url after the last `|` to publish it:
+communityWorlds
+  Skyblock | community remix |
+
+// Save keys (kv-plugin folder "aether"):
+//   "save" -> {v, seed, pos, yaw, pitch, collected, hotbar, time, weather, flying, edits:[["gx,gy,gz",blockId],...]}
